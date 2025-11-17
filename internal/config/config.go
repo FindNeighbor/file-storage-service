@@ -10,10 +10,10 @@ type Config struct {
 
 type Minio struct {
 	Endpoint   string `yaml:"endpoint"`
-	AccessKey  string `yaml:"access_key"`
-	SecretKey  string `yaml:"secret_key"`
-	UseSSL     bool   `yaml:"use_ssl"`
-	BucketName string `yaml:"bucket"`
+	AccessKey  string `yaml:"access_key" env:"MINIO_ROOT_USER"`
+	SecretKey  string `yaml:"secret_key" env:"MINIO_ROOT_PASSWORD"`
+	UseSSL     bool   `yaml:"use_ssl" env:"MINIO_USE_SSL"`
+	BucketName string `yaml:"bucket" env:"MINIO_BUCKET_NAME"`
 }
 
 type PresignedUrl struct {

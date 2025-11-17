@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -22,35 +23,48 @@ func NewMinioClient(
 	useSSL bool,
 	bucketName string,
 ) (*MinioClient, error) {
-	client, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: useSSL,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	//дописать проверку подключения
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	bucketExists, err := client.BucketExists(ctx, bucketName)
-	if err != nil {
-		return nil, err
-	}
-
-	if !bucketExists {
-		if err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{}); err != nil {
-			return nil, err
+	for i := 0; i < 15; i++ {
+		client, err := minio.New(endpoint, &minio.Options{
+			Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+			Secure: useSSL,
+		})
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
 		}
-		//log
-	}
-	//log
 
-	return &MinioClient{
-		client:     client,
-		bucketName: bucketName,
-	}, nil
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		bucketExists, err := client.BucketExists(ctx, bucketName)
+		cancel()
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		if !bucketExists {
+			if err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{}); err != nil {
+				time.Sleep(2 * time.Second)
+				continue
+			}
+		}
+
+		policy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::` + bucketName + `/*"]}]}`
+
+		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+		err = client.SetBucketPolicy(ctx, bucketName, policy)
+		cancel()
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		return &MinioClient{
+			client:     client,
+			bucketName: bucketName,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("Failed to start minio")
 }
 
 func (m *MinioClient) Upload(ctx context.Context, objectName string, data io.Reader, fileSize int64, contentType string) error {
@@ -71,7 +85,7 @@ func (m *MinioClient) Upload(ctx context.Context, objectName string, data io.Rea
 }
 
 func (m *MinioClient) GetPresignedUrl(ctx context.Context, objectName string, expiryHours int) (string, error) {
-	url, err := m.client.PresignedGetObject(
+	presignedUrl, err := m.client.PresignedGetObject(
 		ctx,
 		m.bucketName,
 		objectName,
@@ -82,7 +96,10 @@ func (m *MinioClient) GetPresignedUrl(ctx context.Context, objectName string, ex
 		return "", fmt.Errorf("failed to get presigned url: %w", err)
 	}
 
-	return url.String(), nil
+	url := strings.Replace(presignedUrl.String(), "minio:9000", "localhost:9000", 1)
+	//url := presignedUrl.String()
+
+	return url, nil
 }
 
 func (m *MinioClient) Delete(ctx context.Context, objectName string) error {
