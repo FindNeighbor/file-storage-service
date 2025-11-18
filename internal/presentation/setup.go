@@ -3,11 +3,12 @@ package grpc_server
 import (
 	"context"
 	"fmt"
-	"nbf-file-storage-service/internal/config"
-	"nbf-file-storage-service/internal/service"
-	"nbf-file-storage-service/internal/storage"
-	s3_v1 "nbf-file-storage-service/pkg/pb/gen"
 	"net"
+
+	"github.com/acyushka/nbf-file-storage-service/internal/config"
+	"github.com/acyushka/nbf-file-storage-service/internal/service"
+	"github.com/acyushka/nbf-file-storage-service/internal/storage"
+	s3_v1 "github.com/acyushka/nbf-file-storage-service/pkg/pb/gen"
 
 	"github.com/hesoyamTM/nbf-auth/pkg/logger"
 	"google.golang.org/grpc"

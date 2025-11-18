@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"nbf-file-storage-service/internal/models"
-	"nbf-file-storage-service/internal/storage"
 	"path/filepath"
+
+	"github.com/acyushka/nbf-file-storage-service/internal/models"
+	"github.com/acyushka/nbf-file-storage-service/internal/storage"
 
 	"github.com/google/uuid"
 )

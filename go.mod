@@ -1,4 +1,4 @@
-module nbf-file-storage-service
+module github.com/acyushka/nbf-file-storage-service
 
 go 1.25.0
 

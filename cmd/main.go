@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
-	"nbf-file-storage-service/internal/config"
-	grpc_server "nbf-file-storage-service/internal/presentation"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/acyushka/nbf-file-storage-service/internal/config"
+	grpc_server "github.com/acyushka/nbf-file-storage-service/internal/presentation"
 
 	cfgtools "github.com/hesoyamTM/nbf-auth/pkg/config"
 	"github.com/hesoyamTM/nbf-auth/pkg/logger"
