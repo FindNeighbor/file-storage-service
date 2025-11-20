@@ -30,35 +30,28 @@ func NewMinioClient(
 		})
 		if err != nil {
 			fmt.Printf("[minio] connect error: %v\n", err)
-			time.Sleep(2 * time.Second)
 			continue
 		}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx := context.Background()
 		bucketExists, err := client.BucketExists(ctx, bucketName)
-		cancel()
 		if err != nil {
 			fmt.Printf("[minio] bucket exists error: %v\n", err)
-			time.Sleep(2 * time.Second)
 			continue
 		}
 
 		if !bucketExists {
 			if err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{}); err != nil {
 				fmt.Printf("[minio] make bucket error: %v\n", err)
-				time.Sleep(2 * time.Second)
 				continue
 			}
 		}
 
 		policy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":["*"]},"Action":["s3:GetObject"],"Resource":["arn:aws:s3:::` + bucketName + `/*"]}]}`
 
-		ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 		err = client.SetBucketPolicy(ctx, bucketName, policy)
-		cancel()
 		if err != nil {
 			fmt.Printf("[minio] set policy error: %v\n", err)
-			time.Sleep(2 * time.Second)
 			continue
 		}
 
