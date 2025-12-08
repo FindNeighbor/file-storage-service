@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/url"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -13,10 +14,12 @@ import (
 type MinioClient struct {
 	client     *minio.Client
 	bucketName string
+	publicURL  string
 }
 
 func NewMinioClient(
 	endpoint string,
+	publicURL string,
 	accessKey string,
 	secretKey string,
 	useSSL bool,
@@ -57,6 +60,7 @@ func NewMinioClient(
 		return &MinioClient{
 			client:     client,
 			bucketName: bucketName,
+			publicURL:  publicURL,
 		}, nil
 	}
 
@@ -92,10 +96,15 @@ func (m *MinioClient) GetPresignedUrl(ctx context.Context, objectName string, ex
 		return "", fmt.Errorf("failed to get presigned url: %w", err)
 	}
 
-	url := presignedUrl
-	url.Host = "localhost:9000"
+	publicURL, err := url.Parse(m.publicURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid public URL: %w", err)
+	}
 
-	return url.String(), nil
+	presignedUrl.Scheme = publicURL.Scheme
+	presignedUrl.Host = publicURL.Host
+
+	return presignedUrl.String(), nil
 }
 
 func (m *MinioClient) Delete(ctx context.Context, objectName string) error {

@@ -10,6 +10,7 @@ type Config struct {
 
 type Minio struct {
 	Endpoint   string `yaml:"endpoint"`
+	PublicURL  string `yaml:"public_url"`
 	AccessKey  string `yaml:"access_key" env:"MINIO_ROOT_USER"`
 	SecretKey  string `yaml:"secret_key" env:"MINIO_ROOT_PASSWORD"`
 	UseSSL     bool   `yaml:"use_ssl" env:"MINIO_USE_SSL"`
