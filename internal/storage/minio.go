@@ -18,7 +18,6 @@ type MinioClient struct {
 
 func NewMinioClient(
 	endpoint string,
-	publicEndpoint string,
 	accessKey string,
 	secretKey string,
 	useSSL bool,
@@ -56,18 +55,9 @@ func NewMinioClient(
 			continue
 		}
 
-		publicClient, err := minio.New(publicEndpoint, &minio.Options{
-			Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-			Secure: useSSL,
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to create public minio client: %w", err)
-		}
-
 		return &MinioClient{
-			client:       client,
-			publicClient: publicClient,
-			bucketName:   bucketName,
+			client:     client,
+			bucketName: bucketName,
 		}, nil
 	}
 
@@ -103,9 +93,10 @@ func (m *MinioClient) GetPresignedUrl(ctx context.Context, objectName string, ex
 		return "", fmt.Errorf("failed to get presigned url: %w", err)
 	}
 
-	url := presignedUrl.String()
+	url := presignedUrl
+	url.Host = "localhost:9000"
 
-	return url, nil
+	return url.String(), nil
 }
 
 func (m *MinioClient) Delete(ctx context.Context, objectName string) error {
